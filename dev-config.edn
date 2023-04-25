@@ -7,8 +7,4 @@
  ;; when :nrepl-port is set the application starts the nREPL server on load
  :nrepl-port 7000
 
- :database-url "postgresql://localhost:5432/sugbi_dev?user=sugbi&password=spassword"
-
- ;; get this info from https://console.cloud.google.com/apis/credentials
- :google/client "Your client_id"
- :google/secret "Your client_secret"}
+ :database-url "postgresql://localhost:5432/sugbi_dev?user=sugbi&password=spassword"}
