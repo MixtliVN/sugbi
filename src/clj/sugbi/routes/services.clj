@@ -7,7 +7,8 @@
     [reitit.ring.middleware.muuntaja :as muuntaja]
     [reitit.ring.middleware.multipart :as multipart]
     [reitit.ring.middleware.parameters :as parameters]
-    [sugbi.catalog.routes :as catalog.routes]
+    [sugbi.catalog.db :as catalog.db]
+    [sugbi.catalog.core :as catalog.core]
     [sugbi.middleware.formats :as formats]
     [ring.util.http-response :refer :all]
     [clojure.java.io :as io]))
@@ -47,4 +48,43 @@
             {:url "/api/swagger.json"
              :config {:validator-url nil}})}]]
 
-   catalog.routes/routes])
+   ["/catalog" {:swagger {:tags ["Catalog"]}}
+    ["/books"
+     ["" {:get    {:summary    "search something in to the catalog"
+                   :parameters {:query {:q string?}}
+                   :responses  {200 {:body some?}}
+                   :handler    (fn [{{{:keys [q]} :query} :parameters}]
+                                 {:status 200
+                                  :body   (catalog.core/enriched-search-books-by-title
+                                           q
+                                           #{:title               :full-title
+                                             :subtitle            :publishers
+                                             :publish-date        :weight
+                                             :physical-dimensions :genre
+                                             :subjects            :number-of-pages})})}
+          :post   {:summary    "add a book title to the catalog"
+                   :parameters {:body {:isbn  string?
+                                       :title string?}}
+                   :responses  {200 {:body some?}}
+                   :handler    (fn [{{{:keys [isbn title]} :body} :parameters}]
+                                 {:status 200
+                                  :body   (catalog.db/insert-book! {:isbn  isbn
+                                                                    :title title})})}
+          :delete {:summary    "delete a book title of the catalog"
+                   :parameters {:body {:isbn string?}}
+                   :responses  {200 {:body some?}}
+                   :handler    (fn [{{{:keys [isbn]} :body} :parameters}]
+                                 {:status 200
+                                  :body   {:deleted (catalog.db/delete-book! {:isbn isbn})}})}}]
+     ["/:isbn" {:get {:summary    "get a book info by its isbn"
+                      :parameters {:path {:isbn string?}}
+                      :responses  {200 {:body some?}}
+                      :handler    (fn [{{{:keys [isbn]} :path} :parameters}]
+                                    {:status 200
+                                     :body   (catalog.core/get-book
+                                              isbn
+                                              #{:title               :full-title
+                                                :subtitle            :publishers
+                                                :publish-date        :weight
+                                                :physical-dimensions :genre
+                                                :subjects            :number-of-pages})})}}]]]])

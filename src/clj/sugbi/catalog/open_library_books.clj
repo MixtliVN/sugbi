@@ -23,20 +23,18 @@
         (#(medley/map-keys csk/->kebab-case %)))))
 
 
-(def relevant-fields
-  #{:title               :full-title
-    :subtitle            :publishers
-    :publish-date        :weight
-    :physical-dimensions :genre
-    :subjects            :number-of-pages})
-
 (defn book-info
   [isbn requested-fields]
-  (-> isbn
-      raw-book-info
-      (select-keys relevant-fields)
-      (select-keys requested-fields)
-      (assoc :isbn isbn)))
+  (let [relevant-fields #{:title               :full-title
+                          :subtitle            :publishers
+                          :publish-date        :weight
+                          :physical-dimensions :genre
+                          :subjects            :number-of-pages}
+        raw-info        (raw-book-info isbn)]
+    (-> raw-info
+        (select-keys relevant-fields)
+        (select-keys requested-fields)
+        (assoc :isbn isbn))))
 
 
 (defn multiple-book-info

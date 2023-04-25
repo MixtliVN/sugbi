@@ -10,17 +10,15 @@
   (->> (concat x y)
        (group-by k)
        (map val)
-       (mapv (fn [[x y]] (merge x y)))))
-
-
-(def available-fields olb/relevant-fields)
+       (map (fn [[x y]] (merge x y)))))
 
 
 (defn get-book
   [isbn fields]
-  (when-let [db-book (db/get-book {:isbn isbn})]
+  (if-let [db-book (db/get-book {:isbn isbn})]
     (let [open-library-book-info (olb/book-info isbn fields)]
-      (merge db-book open-library-book-info))))
+      (merge db-book open-library-book-info))
+    {}))
 
 
 (defn get-books
