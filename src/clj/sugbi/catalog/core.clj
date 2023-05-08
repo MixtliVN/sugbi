@@ -39,3 +39,15 @@
      :isbn
      db-book-infos
      open-library-book-infos)))
+
+(defn checkout-book
+  [user-id book-id]
+  (db/checkout-book! {:user_id user-id :book_id book-id}))
+
+(defn return-book
+  [user-id book-id]
+  (db/return-book! {:user_id user-id :book_id book-id}))
+
+(defn get-book-lendings
+  [user-id]
+  (db/get-book-lendings {:user_id user-id}))
