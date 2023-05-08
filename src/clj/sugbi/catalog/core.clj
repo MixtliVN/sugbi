@@ -17,9 +17,7 @@
   [isbn fields]
   (if-let [db-book (db/get-book {:isbn isbn})]
     (let [open-library-book-info (olb/book-info isbn fields)]
-      (merge db-book open-library-book-info))
-    {}))
-
+      (merge db-book open-library-book-info))))
 
 (defn get-books
   [fields]
