@@ -1,5 +1,6 @@
 -- :name insert-book! :! :1
-insert into catalog.book (title, isbn) values (:title, :isbn)
+insert into catalog.book (title, isbn, cover_image_data, cover_image_type)
+values (:title, :isbn, :cover.data, :cover.type)
 returning *;
 
 -- :name delete-book! :! :n
@@ -14,6 +15,12 @@ where title like :title;
 select isbn, true as "available"
 from catalog.book
 where isbn = :isbn
+
+-- :name get-book-cover :? :1
+select isbn, cover_image_data, cover_image_type
+from catalog.book
+where isbn = :isbn
+  and cover_image_type = :type;
 
 -- :name get-books :? :*
 select isbn

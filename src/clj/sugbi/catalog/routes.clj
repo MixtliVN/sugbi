@@ -1,5 +1,7 @@
 (ns sugbi.catalog.routes
   (:require
+   [clojure.spec.alpha :as s]
+   [reitit.ring.middleware.multipart :as multipart]
    [spec-tools.data-spec :as ds]
    [sugbi.catalog.handlers :as catalog.handlers]))
 
@@ -32,19 +34,25 @@
                 :responses  {200 {:body [book-info-spec]}}
                 :handler    catalog.handlers/search-books}
          :post {:summary    "add a book title to the catalog"
-                :parameters {:header {:cookie string?}
-                             :body   basic-book-info-spec}
+                :parameters {:header    {:cookie string?}
+                             :multipart (merge basic-book-info-spec
+                                               {:file multipart/temp-file-part})}
                 :responses  {200 {:body basic-book-info-spec}
-                             405 {:body {:message string?}}}
+                             405 {:body {:message string?}}
+                             415 {:body {:message string?}}}
                 :handler    catalog.handlers/insert-book!}}]
-    ["/:isbn" {:get    {:summary    "get a book info by its isbn"
-                        :parameters {:path {:isbn string?}}
-                        :responses  {200 {:body book-info-spec}
-                                     404 {:body {:isbn string?}}}
-                        :handler    catalog.handlers/get-book}
-               :delete {:summary    "delete a book title of the catalog"
-                        :parameters {:header {:cookie string?}
-                                     :path   {:isbn string?}}
-                        :responses  {200 {:body {:deleted int?}}
-                                     405 {:body {:message string?}}}
-                        :handler    catalog.handlers/delete-book!}}]]])
+    ["/:isbn" {:parameters {:path {:isbn string?}}}
+     ["" {:get    {:summary    "get a book info by its isbn"
+                   :responses  {200 {:body book-info-spec}
+                                404 {:body {:isbn string?}}}
+                   :handler    catalog.handlers/get-book}
+          :delete {:summary    "delete a book title of the catalog"
+                   :parameters {:header {:cookie string?}}
+                   :responses  {200 {:body {:deleted int?}}
+                                405 {:body {:message string?}}}
+                   :handler    catalog.handlers/delete-book!}}]
+     ["/cover.:ext" {:get {:summary    "get a book cover"
+                           :parameters {:path {:ext (s/spec #{"jpg" "png"})}}
+                           :responses  {200 {:body some?}
+                                        404 {:body {:isbn string?}}}
+                           :handler    catalog.handlers/get-book-cover}}]]]])
