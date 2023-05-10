@@ -83,3 +83,51 @@
           (response/header "Content-Type" (image-content-type image-type))
           (response/header "Content-Length" (count image-data)))
       (response/not-found {:isbn isbn}))))
+
+(defn checkout-book!
+  [request]
+  (let [book-id          (get-in request [:parameters :path :book_id])
+        user-id          (get-in request [:session :sub])]
+    (cond
+      (nil? user-id)               (response/forbidden {:message "Must be logged in"})
+      (nil? book-id)           (response/not-found {:book_id book-id})
+      :else                    (if-let [book-ch (catalog.core/checkout-book
+                                                   user-id
+                                                   book-id)]
+                                 (response/ok book-id)
+                                 (response/conflict {:book_id book-id})))))
+
+(defn return-book!
+  [request]
+  (let [book-id          (get-in request [:parameters :path :book_id])
+        user-id          (get-in request [:session :sub])]
+    (cond
+      (nil? user-id)               (response/forbidden {:message "Must be logged in"})
+      (nil? book-id)           (response/not-found {:book_id book-id})
+      :else                    (if-let [book-ch (catalog.core/return-book
+                                                   user-id
+                                                   book-id)]
+                                 (response/ok book-id)
+                                 (response/conflict {:book_id book-id})))))
+
+(defn user-lendings
+  [request]
+  (let [user-id          (get-in request [:parameters :path :user_id])]
+    (cond
+      (nil? user-id)               (response/forbidden {:message "Must be logged in"})
+      :else                    (if-let [book-ln (catalog.core/get-book-lendings
+                                                   user-id)]
+                                 (response/ok book-ln)
+                                 (response/not-found {:user_id user-id})))))
+
+(defn lib-lendings
+  [request]
+  (let [user-id          (get-in request [:session :sub])
+        is-librarian? (get-in request [:session :is-librarian?])]
+    (cond
+      (not is-librarian?)          (response/forbidden {:message "Operation restricted to librarians"})
+      (nil? user-id)               (response/forbidden {:message "Must be logged in"})
+      :else                    (if-let [book-ln (catalog.core/get-book-lendings
+                                                   user-id)]
+                                 (response/ok book-ln)
+                                 (response/not-found {:user_id user-id})))))

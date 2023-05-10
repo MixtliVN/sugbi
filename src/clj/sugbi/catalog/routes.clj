@@ -51,8 +51,53 @@
                    :responses  {200 {:body {:deleted int?}}
                                 405 {:body {:message string?}}}
                    :handler    catalog.handlers/delete-book!}}]
+     ["/item"
+      ["/:book_id" {:parameters {:path {:book_id string?}}}
+       ["/checkout"
+        ["" {:post {:summary    "lend a book to user"
+                    :parameters {:header    {:cookie string?}}
+                    :responses  {200 {:body basic-book-info-spec}
+                                 404 {:body {:message string?}}
+                                 409 {:body {:message string?}}
+                                 403 {:body {:message string?}}}
+                    :handler    catalog.handlers/checkout-book!}}]
+        ]
+       ["/return"
+        ["" {:post {:summary    "user returns a book"
+                    :parameters {:header    {:cookie string?}}
+                    :responses  {200 {:body basic-book-info-spec}
+                                 404 {:body {:message string?}}
+                                 409 {:body {:message string?}}
+                                 403 {:body {:message string?}}}
+                    :handler    catalog.handlers/return-book!}}]
+        ]
+       ]
+      ]
      ["/cover.:ext" {:get {:summary    "get a book cover"
                            :parameters {:path {:ext (s/spec #{"jpg" "png"})}}
                            :responses  {200 {:body some?}
                                         404 {:body {:isbn string?}}}
-                           :handler    catalog.handlers/get-book-cover}}]]]])
+                           :handler    catalog.handlers/get-book-cover}}]]]]
+  ["/user" {:swagger {:tags ["User"]}}
+   ["/lendings"
+    ["" {:get {:summary    "user gets their lended books"
+               :parameters {:header    {:cookie string?}}
+               :responses  {200 {:body basic-book-info-spec}
+                            404 {:body {:message string?}}
+                            403 {:body {:message string?}}}
+               :handler    catalog.handlers/user-lendings}}
+     ]
+    ]
+   ]
+  ["/lendings" {:swagger {:tags ["Lendings"]}}
+   [""
+    {:get {:summary    "user gets their lended books"
+           :parameters {:header    {:cookie string?}
+                        :path      {:user_id string?}}
+           :responses  {200 {:body basic-book-info-spec}
+                        404 {:body {:message string?}}
+                        403 {:body {:message string?}}}
+           :handler    catalog.handlers/lib-lendings}}
+    ]
+   ]
+  )
